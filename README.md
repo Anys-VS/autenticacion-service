@@ -1,20 +1,3 @@
-Markdown Live Preview
-Reset
-Copy
-Export PDF
-
-4546474243443435363738394041293031323327282425262122231920161718131415111289103456712
-# 🔐 Microservicio de Autenticacion
-
-Microservicio encargado de la autenticación y autorización de usuarios dentro de la plataforma e-commerce.
-
-![Java](https://img.shields.io/badge/Java-17-orange)
-![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.x-brightgreen)
-![Spring Security](https://img.shields.io/badge/Spring_Security-JWT-success)
-![Maven](https://img.shields.io/badge/Maven-Build-blue)
-![Oracle](https://img.shields.io/badge/Oracle-Database-red)
-
-
 🔐 Microservicio de Autenticacion
 Microservicio encargado de la autenticación y autorización de usuarios dentro de la plataforma e-commerce.
 
@@ -102,4 +85,3 @@ Spring Data JPA
 Maven
 👨‍💻 Autor
 Proyecto desarrollado para plataforma e-commerce basada en arquitectura de microservicios.
-
