@@ -15,7 +15,7 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
     private final SecretKey secretKey;
-    private final long jwtExpirationMs = 86400000; // 1 día
+    private final long jwtExpirationMs = 2000000; 
 
     public JwtUtil(@Value("${jwt.secret}") String secret) {
         this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
