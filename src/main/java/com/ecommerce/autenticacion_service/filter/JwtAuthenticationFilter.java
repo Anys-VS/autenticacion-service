@@ -1,8 +1,6 @@
 package com.ecommerce.autenticacion_service.filter;
 
 import com.ecommerce.autenticacion_service.util.JwtUtil;
-import com.ecommerce.autenticacion_service.model.Usuario;
-import com.ecommerce.autenticacion_service.repository.UsuarioRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,16 +13,14 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Optional;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-    private final JwtUtil jwtUtil;
-    private final UsuarioRepository usuarioRepository;
 
-    public JwtAuthenticationFilter(JwtUtil jwtUtil, UsuarioRepository usuarioRepository) {
+    private final JwtUtil jwtUtil;
+
+    public JwtAuthenticationFilter(JwtUtil jwtUtil) {
         this.jwtUtil = jwtUtil;
-        this.usuarioRepository = usuarioRepository;
     }
 
     @Override
@@ -41,11 +37,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             } catch (Exception ignored) {}
         }
 
+        // Validamos el token solo con la firma JWT, sin consultar la BD
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            Optional<Usuario> usuarioOpt = usuarioRepository.findByEmail(email);
-            if (usuarioOpt.isPresent() && jwtUtil.isTokenValid(jwt, email)) {
+            if (jwtUtil.isTokenValid(jwt, email)) {
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        usuarioOpt.get(), null, null // Puedes mapear roles aquí si los tienes
+                        email, null, null
                 );
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
@@ -54,3 +50,4 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 }
+

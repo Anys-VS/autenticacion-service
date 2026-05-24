@@ -1,51 +1,47 @@
 package com.ecommerce.autenticacion_service.service;
-
 import com.ecommerce.autenticacion_service.dto.AuthRequest;
 import com.ecommerce.autenticacion_service.dto.AuthResponse;
-import com.ecommerce.autenticacion_service.dto.RegisterRequest;
-import com.ecommerce.autenticacion_service.model.Usuario;
-import com.ecommerce.autenticacion_service.repository.UsuarioRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import com.ecommerce.autenticacion_service.util.JwtUtil;
+import com.ecommerce.autenticacion_service.dto.UsuarioClientResponse;
 import com.ecommerce.autenticacion_service.exception.CredencialesInvalidasException;
-import com.ecommerce.autenticacion_service.exception.EmailYaRegistradoException;
+import com.ecommerce.autenticacion_service.util.JwtUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
-
+import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 @Service
-
 public class AuthService {
-    private final UsuarioRepository usuarioRepository;
-    private final PasswordEncoder passwordEncoder;
+    private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
+    private final WebClient webClient;
     private final JwtUtil jwtUtil;
-
-    @Autowired
-    public AuthService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder, JwtUtil jwtUtil) {
-        this.usuarioRepository = usuarioRepository;
-        this.passwordEncoder = passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
+    public AuthService(WebClient webClient, JwtUtil jwtUtil) {
+        this.webClient = webClient;
         this.jwtUtil = jwtUtil;
+        this.passwordEncoder = new BCryptPasswordEncoder();
     }
-
-    public void registrar(RegisterRequest request) {
-        if (usuarioRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new EmailYaRegistradoException("El email ya está registrado");
-        }
-        Usuario usuario = Usuario.builder()
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .rol(request.getRol())
-                .build();
-        usuarioRepository.save(usuario);
-    }
-
     public AuthResponse login(AuthRequest request) {
-        Optional<Usuario> usuarioOpt = usuarioRepository.findByEmail(request.getEmail());
-        if (usuarioOpt.isEmpty() || !passwordEncoder.matches(request.getPassword(), usuarioOpt.get().getPassword())) {
+        logger.info("Intento de login para email: {}", request.getEmail());
+        UsuarioClientResponse usuario;
+        try {
+            usuario = webClient.get()
+                    .uri("/usuarios/email/{email}", request.getEmail())
+                    .retrieve()
+                    .bodyToMono(UsuarioClientResponse.class)
+                    .block();
+        } catch (WebClientResponseException e) {
+            logger.warn("Usuario no encontrado para email: {}", request.getEmail());
             throw new CredencialesInvalidasException("Credenciales inválidas");
         }
-        String token = jwtUtil.generateToken(request.getEmail());
+        if (usuario == null || !passwordEncoder.matches(request.getPassword(), usuario.getContrasena())) {
+            logger.warn("Contraseña incorrecta para email: {}", request.getEmail());
+            throw new CredencialesInvalidasException("Credenciales inválidas");
+        }
+        String rol = usuario.getRol() != null ? usuario.getRol() : "USUARIO";
+        String token = jwtUtil.generateToken(request.getEmail(), usuario.getId(), rol);
+        logger.info("Login exitoso para email: {} con rol {}", request.getEmail(), rol);
         return new AuthResponse(token);
     }
 }
