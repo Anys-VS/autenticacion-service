@@ -13,10 +13,12 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 @Service
 public class AuthService {
+
     private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
     private final WebClient webClient;
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
+
     public AuthService(WebClient webClient, JwtUtil jwtUtil) {
         this.webClient = webClient;
         this.jwtUtil = jwtUtil;
@@ -31,13 +33,14 @@ public class AuthService {
                     .retrieve()
                     .bodyToMono(UsuarioClientResponse.class)
                     .block();
+
         } catch (WebClientResponseException e) {
             logger.warn("Usuario no encontrado para email: {}", request.getEmail());
-            throw new CredencialesInvalidasException("Credenciales inválidas");
+            throw new CredencialesInvalidasException("Usuario incorrecto");
         }
         if (usuario == null || !passwordEncoder.matches(request.getPassword(), usuario.getContrasena())) {
             logger.warn("Contraseña incorrecta para email: {}", request.getEmail());
-            throw new CredencialesInvalidasException("Credenciales inválidas");
+            throw new CredencialesInvalidasException("Password incorrecta");
         }
         String rol = usuario.getRol() != null ? usuario.getRol() : "USUARIO";
         String token = jwtUtil.generateToken(request.getEmail(), usuario.getId(), rol);
