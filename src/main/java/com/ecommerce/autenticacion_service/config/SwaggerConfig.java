@@ -1,0 +1,23 @@
+package com.ecommerce.autenticacion_service.config;
+
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Contact;
+import io.swagger.v3.oas.models.info.Info;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class SwaggerConfig {
+
+    @Bean
+    public OpenAPI customOpenAPI() {
+        return new OpenAPI()
+                .info(new Info()
+                        .title("API Autenticación")
+                        .version("1.0")
+                        .description("Microservicio encargado de la autenticación y generación de JWT")
+                        .contact(new Contact()
+                                .name("Equipo Ecommerce")
+                                .email("soporte@ecommerce.cl")));
+    }
+}
