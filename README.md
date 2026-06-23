@@ -61,8 +61,6 @@ Actúa como punto central de seguridad dentro de la arquitectura de microservici
 | ------ | ---------------- | --------------------------------------------------------- |
 | POST   | `/auth/register` | Registrar usuario                                         |
 | POST   | `/auth/login`    | Iniciar sesión                                            |
-| GET    | `/auth/validate` | Validar token JWT                                         |
-| GET    | `/auth/me`       | Obtener información del usuario autenticado *(si aplica)* |
 
 ---
 
